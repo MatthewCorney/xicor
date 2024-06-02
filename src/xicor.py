@@ -1,12 +1,30 @@
 import numpy as np
-from typing import Literal
+from typing import Literal, Union, TypedDict
 from scipy.stats import norm
-import random
-random.seed(42)
+import logging
 
-np.random.seed(42)
+logging.basicConfig(format="[%(levelname)s] %(asctime)s %(message)s", level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def calculate_xi_statistics(res):
+
+class XiResult(TypedDict):
+    fr: list
+    xi: float
+    CU: float
+
+
+class XiStatistic(TypedDict):
+    xi: float
+    sd: float
+    pval: float
+
+
+def calculate_xi_statistics(res: XiResult) -> XiStatistic:
+    """
+
+    :param res:
+    :return:
+    """
     fr = np.array(res['fr'])
     n = len(fr)
 
@@ -25,9 +43,11 @@ def calculate_xi_statistics(res):
     xi = res['xi']
     sd_xi = np.sqrt(v / n)
     pval = 1 - norm.cdf(np.sqrt(n) * xi / np.sqrt(v))
+    statistic = XiStatistic(xi=xi, sd=sd_xi, pval=pval)
+    return statistic
 
-    return {'xi': xi, 'sd': sd_xi, 'pval': pval}
-def random_rank(vec: np.ndarray):
+
+def random_rank(vec: np.ndarray) -> np.ndarray:
     """
     From an array vec, sorts it in order breaking ties at random
     :param vec:
@@ -43,12 +63,11 @@ def random_rank(vec: np.ndarray):
 
 def calculate_xi(xvec: np.ndarray,
                  yvec: np.ndarray,
-                 simple=True):
+                 ) -> XiResult:
     """
 
     :param xvec:
     :param yvec:
-    :param simple:
     :return:
     """
     n = len(xvec)
@@ -69,13 +88,10 @@ def calculate_xi(xvec: np.ndarray,
 
     # xi is calculated in the next three lines:
     A1 = np.sum(np.abs(fr[:-1] - fr[1:])) / (2 * n)
-    CU = np.mean(gr * (1 - gr))
+    CU = np.mean(gr * (1 - gr))[0]
     xi = 1 - A1 / CU
-
-    if simple:
-        return xi
-    else:
-        return {"xi": xi, "fr": fr, "CU": CU}
+    xi_result = XiResult(xi=xi, fr=fr, CU=CU)
+    return xi_result
 
 
 def calculate_xi_permutation_test(yvec: np.ndarray,
@@ -101,16 +117,13 @@ def calculate_xi_permutation_test(yvec: np.ndarray,
 
     # Calculate the standard deviation and P-value based on permutation test
     sd_rp = np.sqrt(np.var(rp))
-    pval = np.mean(rp > xi)
-
-    # Return results
-    return {"xi": xi,
-            "sd": sd_rp,
-            "pval": pval}
+    pval = np.mean(rp > xi)[0]
+    statistic = XiStatistic(xi=xi, sd=sd_rp, pval=pval)
+    return statistic
 
 
-def xicor(xvec: np.ndarray,
-          yvec: np.ndarray,
+def xicor(xvec: Union[np.ndarray, list],
+          yvec: Union[np.ndarray, list],
           method: Literal['asymptotic', 'permutation'], nperm: int):
     """
 
@@ -120,21 +133,22 @@ def xicor(xvec: np.ndarray,
     :param nperm:
     :return:
     """
-    xvec = np.array(xvec)
-    yvec = np.array(yvec)
+    if isinstance(xvec, list):
+        xvec = np.array(xvec)
+    if isinstance(yvec, list):
+        yvec = np.array(yvec)
     if method == "asymptotic":
         res = calculate_xi(xvec,
                            yvec,
-                           simple=False
                            )
-        res=calculate_xi_statistics(res)
+        res = calculate_xi_statistics(res)
         return res
     elif method == 'permutation':
         res = calculate_xi(xvec,
                            yvec,
-                           simple=False
                            )
         res = calculate_xi_permutation_test(yvec=yvec, xi=res['xi'], nperm=nperm)
     else:
+        logger.error('Method should be either "asymptotic" or "permutation"')
         raise Exception
     return res
