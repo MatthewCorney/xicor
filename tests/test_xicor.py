@@ -16,8 +16,6 @@ expected_results_asym = [
     0.38,
     -0.25]
 
-
-# Define pytest functions
 @pytest.mark.parametrize("data, expected_results_asym", zip(anscombes_quartet, expected_results_asym))
 def test_xicor_asymptotic(data, expected_results_asym):
     xvec, yvec = data
@@ -34,6 +32,34 @@ expected_results_perm = [
 
 @pytest.mark.parametrize("data, expected_results_perm", zip(anscombes_quartet, expected_results_perm))
 def test_xicor_permutation(data, expected_results_perm):
+    xvec, yvec = data
+    result = xicor(xvec=xvec, yvec=yvec, method='permutation', nperm=100)
+    assert result['xi'] == pytest.approx(expected_results_perm, rel=1e-2), f"Failed for data {data}"
+
+expected_results_asym_modified = [
+    0.275,
+    0.6,
+    0.38,
+    -0.25]
+
+
+# Define pytest functions
+@pytest.mark.parametrize("data, expected_results_asym", zip(anscombes_quartet, expected_results_asym_modified))
+def test_xicor_asymptotic_modified(data, expected_results_asym):
+    xvec, yvec = data
+    result = xicor(xvec=xvec, yvec=yvec, method='asymptotic', nperm=10000)
+    assert result['xi'] == pytest.approx(expected_results_asym, rel=1e-2), f"Failed for data {data}"
+
+
+expected_results_perm_modified = [
+    0.275,
+    0.6,
+    0.38,
+    -0.25]
+
+
+@pytest.mark.parametrize("data, expected_results_perm", zip(anscombes_quartet, expected_results_perm_modified))
+def test_xicor_permutation_modified(data, expected_results_perm):
     xvec, yvec = data
     result = xicor(xvec=xvec, yvec=yvec, method='permutation', nperm=100)
     assert result['xi'] == pytest.approx(expected_results_perm, rel=1e-2), f"Failed for data {data}"
