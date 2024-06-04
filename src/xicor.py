@@ -8,12 +8,18 @@ logger = logging.getLogger(__name__)
 
 
 class XiResult(TypedDict):
+    """
+    Interface for the xi result
+    """
     fr: list
     xi: float
     CU: float
 
 
 class XiStatistic(TypedDict):
+    """
+    Interface for the Xi statistic
+    """
     xi: float
     sd: float
     pval: float
@@ -21,8 +27,8 @@ class XiStatistic(TypedDict):
 
 def calculate_xi_statistics(res: XiResult) -> XiStatistic:
     """
-
-    :param res:
+    Calculates the Xi correlation coefficient p value
+    :param res:XiStatistic, typed dict with xi, sd, and p value
     :return:
     """
     fr = np.array(res['fr'])
@@ -63,37 +69,15 @@ def random_rank(vec: np.ndarray) -> np.ndarray:
 
 def calculate_xi(xvec: np.ndarray,
                  yvec: np.ndarray,
-                 modified: bool = False,
                  ) -> XiResult:
     """
-
+    Base calculation of the Xi correlation coefficient
     :param xvec:
     :param yvec:
-    :param modified:
     :return:
     """
     # Lengh of xvec
     n = len(xvec)
-    if modified:
-        n = len(xvec)
-        PI = random_rank(xvec)
-
-        ord_ = np.argsort(PI)
-        fr = xvec[ord_]
-        m = min(int(np.sqrt(n)), 10)
-        if m < 1:  # pragma: no cover
-            m = 1
-        A1 = 0
-        for mm in range(1, m + 1):
-            m_sum = np.minimum(fr[: (n - mm)], fr[mm:]).sum()
-            m_sum += fr[(n - mm):].sum()
-
-            A1 += m_sum
-
-        CU = (n + 1) * (n * m + m * (m + 1) / 4)
-        xi = -2 + 6 * A1 / CU
-        xi_result = XiResult(xi=xi, fr=fr, CU=CU)
-        return xi_result
     # Rank vector of x with ties broken by random rank
     PI = random_rank(xvec)
     # vector of values where each is the sum number of elements less than yvec[i] dived by length of x
@@ -109,7 +93,7 @@ def calculate_xi(xvec: np.ndarray,
     fr = fr[ord_]
 
     A1 = np.sum(np.abs(fr[:-1] - fr[1:])) / (2 * n)
-    CU = np.mean(gr * (1 - gr))[0]
+    CU = float(np.mean(gr * (1 - gr)))
     xi = 1 - A1 / CU
     xi_result = XiResult(xi=xi, fr=fr, CU=CU)
     return xi_result
@@ -118,10 +102,9 @@ def calculate_xi(xvec: np.ndarray,
 def calculate_xi_permutation_test(yvec: np.ndarray,
                                   nperm: int,
                                   xi: float,
-                                  modified: bool = False):
+                                 ):
     """
-
-    :param modified:
+    Permuated method of calculating the coefficient
     :param yvec:
     :param nperm:
     :param xi:
@@ -136,11 +119,12 @@ def calculate_xi_permutation_test(yvec: np.ndarray,
     for i in range(nperm):
         np.random.seed(42 + i)
         x1 = np.random.uniform(0, 1, n)
-        rp[i] = calculate_xi(x1, yvec, modified=modified)
+        res=calculate_xi(x1, yvec)
+        rp[i] = res['xi']
 
     # Calculate the standard deviation and P-value based on permutation test
     sd_rp = np.sqrt(np.var(rp))
-    pval = np.mean(rp > xi)[0]
+    pval = float(np.mean(rp > xi))
     statistic = XiStatistic(xi=xi, sd=sd_rp, pval=pval)
     return statistic
 
@@ -148,15 +132,13 @@ def calculate_xi_permutation_test(yvec: np.ndarray,
 def xicor(xvec: Union[np.ndarray, list],
           yvec: Union[np.ndarray, list],
           method: Literal['asymptotic', 'permutation'],
-          modified: bool = False,
           nperm: int = 1000):
     """
-
-    :param modified:
-    :param xvec:
-    :param yvec:
-    :param method:
-    :param nperm:
+    Main function to calculate the correlation
+    :param xvec: x vector of values, list or 1 dimensional numpy array
+    :param yvec: y vector of values, list or 1 dimensional numpy array
+    :param method: if to use the asymptotic or permutation method
+    :param nperm: if using the permutation method, how many permutations to do
     :return:
     """
     if isinstance(xvec, list):
@@ -166,14 +148,12 @@ def xicor(xvec: Union[np.ndarray, list],
     if method == "asymptotic":
         res = calculate_xi(xvec,
                            yvec,
-                           modified=modified
                            )
         res = calculate_xi_statistics(res)
         return res
     elif method == 'permutation':
         res = calculate_xi(xvec,
                            yvec,
-                           modified=modified
                            )
         res = calculate_xi_permutation_test(yvec=yvec, xi=res['xi'], nperm=nperm)
     else:
