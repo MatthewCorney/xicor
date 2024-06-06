@@ -1,14 +1,28 @@
-[tool.poetry]
-name = "xicor"
-version = "0.1.0"
-description = ""
-authors = ["MatthewCorney <Matthew_corney@yahoo.co.uk>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xicor"
+version = "0.0.1"
+authors = [
+  { name = "Matthew Corney", email = "matthew_corney@yahoo.co.uk" }
+]
+description = "Numerically equivalent reimplementation of the the R xicor package"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent"
+]
+dependencies = [
+  "numpy>=1.19.2",
+  "scipy>=1.5.2",
+  "pytest>=6.1",
+  "pytest-runner>=4.1"
+]
+
+[project.urls]
+Homepage = "https://github.com/MatthewCorney/xicor"
+Bug-Tracker = "https://github.com/MatthewCorney/xicor/issues"
