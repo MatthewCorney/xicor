@@ -1,28 +1,12 @@
 import numpy as np
-from typing import Literal, Union, TypedDict
+from typing import Literal, Union
 from scipy.stats import norm
 import logging
 
+from xicor.interfaces import XiResult, XiStatistic
+
 logging.basicConfig(format="[%(levelname)s] %(asctime)s %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-class XiResult(TypedDict):
-    """
-    Interface for the xi result
-    """
-    fr: list
-    xi: float
-    CU: float
-
-
-class XiStatistic(TypedDict):
-    """
-    Interface for the Xi statistic
-    """
-    xi: float
-    sd: float
-    pval: float
 
 
 def calculate_xi_statistics(res: XiResult) -> XiStatistic:
