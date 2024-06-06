@@ -1,5 +1,5 @@
 import pytest
-from src.xicor import xicor
+from src.xicor import xicorrelation
 
 anscombes_quartet = [([10, 8, 13, 9, 11, 14, 6, 4, 12, 7, 5],
                       [8.04, 6.95, 7.58, 8.81, 8.33, 9.96, 7.24, 4.26, 10.84, 4.82, 5.68]),
@@ -16,10 +16,11 @@ expected_results_asym = [
     0.38,
     -0.25]
 
+
 @pytest.mark.parametrize("data, expected_results_asym", zip(anscombes_quartet, expected_results_asym))
 def test_xicor_asymptotic(data, expected_results_asym):
     xvec, yvec = data
-    result = xicor(xvec=xvec, yvec=yvec, method='asymptotic', nperm=10000)
+    result = xicorrelation(xvec=xvec, yvec=yvec, method='asymptotic', nperm=10000)
     assert result['xi'] == pytest.approx(expected_results_asym, rel=1e-2), f"Failed for data {data}"
 
 
@@ -33,5 +34,5 @@ expected_results_perm = [
 @pytest.mark.parametrize("data, expected_results_perm", zip(anscombes_quartet, expected_results_perm))
 def test_xicor_permutation(data, expected_results_perm):
     xvec, yvec = data
-    result = xicor(xvec=xvec, yvec=yvec, method='permutation', nperm=100)
+    result = xicorrelation(xvec=xvec, yvec=yvec, method='permutation', nperm=100)
     assert result['xi'] == pytest.approx(expected_results_perm, rel=1e-2), f"Failed for data {data}"

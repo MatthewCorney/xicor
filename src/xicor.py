@@ -129,10 +129,10 @@ def calculate_xi_permutation_test(yvec: np.ndarray,
     return statistic
 
 
-def xicor(xvec: Union[np.ndarray, list],
-          yvec: Union[np.ndarray, list],
-          method: Literal['asymptotic', 'permutation'],
-          nperm: int = 1000):
+def xicorrelation(xvec: Union[np.ndarray, list],
+                  yvec: Union[np.ndarray, list],
+                  method: Literal['asymptotic', 'permutation'],
+                  nperm: int = 1000):
     """
     Main function to calculate the correlation
     :param xvec: x vector of values, list or 1 dimensional numpy array
